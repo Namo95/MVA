@@ -1,0 +1,31 @@
+---
+title: "Assgn 1"
+author: "Namrata"
+date: "1/28/2023"
+output: html_document
+---
+
+```{r}
+library(readr)
+Bumpus_sparrows <- read_csv("C:/Users/admin/Downloads/Bumpus_sparrows.csv")
+sparr <- Bumpus_sparrows
+sparr
+Survived=sparr[sparr[,1]=="S",c(1:6)]
+Survived
+Not_Survived=sparr[sparr[,1]=="NS",c(1:6)]
+Not_Survived
+
+Survived.num <- Survived[,-1]
+Survived.num
+colMeans(Survived.num)
+
+Not_Survived.num <- Not_Survived[,-1]
+colMeans(Not_Survived.num)
+
+cov(Survived.num)
+cov(Not_Survived.num)
+
+cor(Survived.num)
+cor(Not_Survived.num)
+```
+
