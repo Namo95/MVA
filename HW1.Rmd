@@ -25,5 +25,7 @@ colMeans(Not_Survived.num)
 cov(Survived.num)
 cov(Not_Survived.num)
 
+cor(Survived.num)
+cor(Not_Survived.num)
 ```
 
