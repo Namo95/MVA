@@ -1,0 +1,79 @@
+---
+title: "Assignment 2"
+author: "Namrata Rath"
+date: "2/12/2023"
+output:
+  html_document: default
+word_document: default
+pdf_document: default
+---
+  
+```{r}
+library(readr)
+library(lattice)
+library(ggplot2)
+library(ggridges)
+library(ggvis)
+library(ggthemes)
+library(cowplot)
+library(gapminder)
+library(gganimate)
+library(dplyr)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+
+
+sparrows <- read_csv("C:/Users/admin/Downloads/Bumpus_sparrows.csv")
+str(sparrows)
+boxplot(sparrows[,2:6])
+stars(sparrows,labels = sparrows$Survivorship)
+
+
+
+attach(sparrows)
+
+#Plots
+sparr.birds <- data.frame(as.numeric(rownames(sparrows)),sparrows[,2:6])
+labs.diagonal <- c("Bird","Total length","Alar extent","L. beak & head","L. humerous","L. keel & sternum")
+
+plot(Total_length, Alar_extent,xlab="Total Length (mm)",ylab="Alar extent (nm)",pch=c(16,1))
+
+# Scatter Plot Matrix
+library(car)
+scatterplotMatrix(~Total_length+Alar_extent+L_beak_head+L_humerous+L_keel_sternum | Survivorship, data=sparrows, var.labels=labs.diagonal,cex.labels=0.7, diagonal="boxplot",smooth=FALSE,reg.line=FALSE,pch=c(1,16),col=rep("black",2), legend.plot=FALSE)
+
+
+
+# ggplot
+ggplot(sparrows, aes(x=L_keel_sternum,y=L_humerous)) + geom_point()
+
+ggplot(sparrows, aes(x=Alar_extent,y=Total_length)) + facet_wrap(~Survivorship) + geom_point()
+
+# bar chart
+ggplot(sparrows, aes(x=L_keel_sternum) )+ geom_bar(position="stack",fill='red') 
+## Highest count of sparrows have the length of keel_sternum as 20.3
+
+# histogram
+ggplot(sparrows, aes(x=Total_length))+geom_histogram(fill='blue', color='black', binwidth=5)
+## 20 sparrows have the total length between 152.5 to 157.5 and 2 sparrows have the length between 147.5 to 152.5
+
+# violin plot 
+ggplot(sparrows, aes(x=Total_length, y=Alar_extent)) + geom_violin()
+
+
+# box plot
+ggplot(sparrows, aes(x=Survivorship, y=Total_length)) + geom_boxplot()
+## Sparrows with the higher total length did not survive as compared to sparrows with smaller total length
+
+# density plot and ggridges
+ggplot(sparrows, aes(x=L_humerous)) + geom_density() 
+
+
+ggplot(sparrows, aes(x=Total_length, y=Survivorship)) + geom_density_ridges() 
+
+
+# hexbin
+ggplot(sparrows, aes(x=Total_length, y=L_beak_head)) + geom_hex() 
+
+```
