@@ -1,0 +1,175 @@
+---
+title: "Assignment 3"
+author: "Namrata Rath"
+date: "2/25/2023"
+output:
+  html_document: default
+word_document: default
+pdf_document: default
+---
+  
+```{r}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(grid)
+library(cowplot) 
+
+Raisin <- read_csv("~/Raisin_Dataset.csv")
+str(Raisin)
+attach(Raisin)
+summary(Raisin)
+cor(Raisin[-8])
+plot(Raisin[,-8])
+##Area and Major Axis Length show positive correlation. 
+
+##Scatter Plot
+ggplot(Raisin, aes(x=Area,y=ConvexArea)) + geom_point()
+##Convex Area and Area shows perfect correlation with almost all the points in a straight line
+
+ggplot(Raisin, aes(x=Area,y=Eccentricity)) + geom_point()
+## Area and Eccentricity have less correlation with the points scattered.
+
+##Box Plot
+ggplot(Raisin, aes(x=Class, y=Area)) + geom_boxplot()
+## Besni has the maximum area of a little over 200000 and Kecimen has a maximum area of about 110000
+
+
+library(GGally)
+ggpairs(Raisin[,c("Area", "MajorAxisLength", "MinorAxisLength","Eccentricity","ConvexArea","Extent","Perimeter","Class")],aes(color = factor(Class)))
+##This graph shows the correlation between two variables for the Raisin dataset. For eg: Perimeter shows a positive correlation of 0.961 with area
+
+Raisin_pca <- prcomp(Raisin[,-8],scale=TRUE)
+Raisin_pca
+summary(Raisin_pca)
+plot(Raisin_pca)
+###Shows the variance for all the Principal Components. PC1 and PC2 have the highest variance
+
+(eigen_raisin <- Raisin_pca$sdev^2)
+names(eigen_raisin) <- paste("PC",1:7,sep="")
+eigen_raisin
+
+sumlambdas <- sum(eigen_raisin)
+sumlambdas
+
+propvar <- eigen_raisin/sumlambdas
+propvar
+
+cumvar_raisin <- cumsum(propvar)
+cumvar_raisin
+matlambdas <- rbind(eigen_raisin,propvar,cumvar_raisin)
+rownames(matlambdas) <- c("Eigenvalues","Prop. variance","Cum. prop. variance")
+round(matlambdas,4)
+
+summary(Raisin_pca)
+
+Raisin_pca$rotation
+print(Raisin_pca)
+
+Raisin_pca$x
+
+##Scree diagram
+plot(eigen_raisin, xlab = "Component number", ylab = "Component variance", type = "l", main = "Scree diagram")
+##Variance is best explained by first 2 PCAs.
+
+diag(cov(Raisin_pca$x))
+xlim <- range(Raisin_pca$x[,1])
+Raisin_pca$x[,1]
+Raisin_pca$x
+plot(Raisin_pca$x,xlim=xlim,ylim=xlim)
+
+Raisin_pca$rotation[,1]
+Raisin_pca$rotation
+
+library(factoextra)
+library(corrplot)
+library(devtools)
+library(FactoMineR)
+library(psych)
+library(vctrs)
+
+var<-get_pca_var(Raisin_pca)
+var
+# Correlation
+pairs.panels(Raisin[,-8],
+             gap = 0,
+             bg = c("red", "blue")[Raisin$Class],
+             pch=21)
+##Minor Axis Length and Area have a positive correlation of 0.91 whereas Extent and Area have a negative correlation of -0.01
+
+pairs.panels(Raisin_pca$x,
+             gap=0,
+             bg = c("red", "blue")[Raisin$Class],
+             pch=21)
+
+fviz_eig(Raisin_pca, addlabels = TRUE)
+###First dimension shows the highest variance at 69% and the percentage decreases with the no. of dimensions
+
+fviz_pca_var(Raisin_pca,col.var = "cos2",
+             gradient.cols = c("#FFCC00", "#CC9933", "#660033", "#330033"),
+             repel = TRUE)
+
+##Quality of representation
+head(var$cos2)
+corrplot(var$cos2,is.corr=FALSE)
+###Convex Area has the highest presence in the 1st dimension whereas Eccentricity has the highest presence in the 2nd dimension
+
+# Color by cos2 values: quality on the factor map
+fviz_pca_var(Raisin_pca, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE # Avoid text overlapping
+)
+
+#Contributions of variables to PCs
+head(var$contrib, 4)
+corrplot(var$contrib, is.corr=FALSE)   
+fviz_pca_var(Raisin_pca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
+)
+##Major Axis Length , Perimeter,Minor Axis Length are more closely related to each pther as compared to Eccentricity and Extent which are present far off
+
+# Contributions of variables to PC1
+fviz_contrib(Raisin_pca, choice = "var", axes = 1, top = 10)
+##Extent has the lowest contribution to Dimension 1 and Convex Area has the highest contribution.
+
+# Contributions of variables to PC2
+fviz_contrib(Raisin_pca, choice = "var", axes = 2, top = 10)
+fviz_contrib(Raisin_pca, choice = "var", axes = 1:2, top = 10)
+
+
+#Graphs of individuals
+
+ind <- get_pca_ind(Raisin_pca)
+ind
+
+# Coordinates of individuals
+head(ind$coord)
+# Quality of individuals
+head(ind$cos2)
+# Contributions of individuals
+head(ind$contrib)
+
+
+fviz_pca_ind(Raisin_pca, col.ind = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE # Avoid text overlapping (slow if many points)
+)
+
+fviz_pca_ind(Raisin_pca,
+             geom.ind = "point", # show points only (nbut not "text")
+             col.ind = Raisin$Class, # color by groups
+             palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+             addEllipses = TRUE, # Concentration ellipses
+             legend.title = "Groups"
+)
+ind.p <- fviz_pca_ind(Raisin_pca, geom = "point", col.ind = Raisin$Class)
+ggpubr::ggpar(ind.p,
+              title = "Principal Component Analysis",
+              subtitle = "Raisin data set",
+              xlab = "PC1", ylab = "PC2",
+              legend.title = "Class", legend.position = "top",
+              ggtheme = theme_gray(), palette = "jco"
+)
+##Shows the distribution of both the Classes of Raisins in PC1 and PC2
+```
