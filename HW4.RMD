@@ -1,0 +1,72 @@
+---
+title: "Assignment 4"
+author: "Namrata Rath"
+date: "3/17/2023"
+output:
+  html_document: default
+word_document: default
+pdf_document: default
+---
+  
+```{r}
+# Factor Analysis
+
+library(psych)
+
+Raisin_Dataset <- read.csv("~/Course Materials-MITA/MVA/Raisin_Dataset.csv")
+
+attach(Raisin_Dataset)
+Raisin_Dataset[1]
+fit.pc <- principal(Raisin_Dataset[-8], nfactors=2, rotate="varimax")
+fit.pc
+round(fit.pc$values, 3)
+fit.pc$loadings
+
+# Communalities
+fit.pc$communality
+# Rotated factor scores, Notice the columns ordering: RC1, RC3, RC2 and RC4
+fit.pc$scores
+# Play with FA utilities
+fa.parallel(Raisin_Dataset[-8]) # See factor recommendation
+fa.plot(fit.pc) # See Correlations within Factors
+fa.diagram(fit.pc) # Visualize the relationship
+vss(Raisin_Dataset[-8]) # See Factor recommendations for a simple structure
+
+# Computing Correlation Matrix
+corrm.emp <- cor(Raisin_Dataset[-8])
+corrm.emp
+plot(corrm.emp)
+Raisin_pca <- prcomp(Raisin_Dataset[-8], scale=TRUE)
+summary(Raisin_pca)
+plot(Raisin_pca)
+# A table containing eigenvalues and %'s accounted, follows. Eigenvalues are the sdev^2
+(eigen_Raisin_Dataset <- round(Raisin_pca$sdev^2,3))
+round(fit.pc$values, 3)
+names(eigen_Raisin_Dataset) <- paste("PC",1:7,sep="")
+eigen_Raisin_Dataset
+sumlambdas <- sum(eigen_Raisin_Dataset)
+sumlambdas
+propvar <- round(eigen_Raisin_Dataset/sumlambdas,2)
+propvar
+cumvar_Raisin_Dataset <- cumsum(propvar)
+cumvar_Raisin_Dataset
+matlambdas <- rbind(eigen_Raisin_Dataset,propvar,cumvar_Raisin_Dataset)
+matlambdas
+rownames(matlambdas) <- c("Eigenvalues","Prop. variance","Cum. prop. variance")
+rownames(matlambdas)
+eigvec.Raisin_Dataset <- Raisin_pca$rotation
+print(Raisin_pca)
+# Taking the first four PCs to generate linear combinations for all the variables with four factors
+pcafactors.Raisin_Dataset <- eigvec.Raisin_Dataset[,1:4]
+pcafactors.Raisin_Dataset
+# Multiplying each column of the eigenvector’s matrix by the square-root of the corresponding eigenvalue in order to get the factor loadings
+unrot.fact.Raisin_Dataset <- sweep(pcafactors.Raisin_Dataset,MARGIN=2,Raisin_pca$sdev[1:4],`*`)
+unrot.fact.Raisin_Dataset
+# Computing communalities
+communalities.Raisin_Dataset<- rowSums(unrot.fact.Raisin_Dataset^2)
+communalities.Raisin_Dataset
+# Performing the varimax rotation. The default in the varimax function is norm=TRUE thus, Kaiser normalization is carried out
+rot.fact.Raisin_Dataset <- varimax(unrot.fact.Raisin_Dataset)
+##  View(unrot.fact.emp)
+rot.fact.Raisin_Dataset
+```
